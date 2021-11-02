@@ -1,0 +1,23 @@
+%=========================================
+% シミュレーション定義
+% 対象：FSS-MU-MIMO
+% リピート回数：500
+% 日付：10/27
+%=========================================
+% SNR定義
+SNRMin=0;
+SNRInc=5;
+SNRMax=30;
+% FECを使っていない場合
+coding_rate=1;
+% Resultにはループ平均値が入っている
+R_MUMIMO=[0.135917128906251,0.06607419921875,0.02614501953125,0.0089596484375,0.0028872265625,0.00093087890625,0.0003016796875]; % MIMO-OFDMA(MMSEC)
+R_FSSMUMIMO=[0.16315587890625,0.0722305078125,0.01913818359375,0.00290802734375,0.0003573046875,0.0000537109375,0.00001619140625]; % FSS-MIMO-OFDMA(non-adaptive)
+semilogy(SNRMin+10*log10(coding_rate):SNRInc:SNRMax+10*log10(coding_rate),R_MO(1,:)','g*--',...
+         SNRMin+10*log10(coding_rate):SNRInc:SNRMax+10*log10(coding_rate),R_FMON(1,:)','bx--');
+legend('MI',...
+       'FSS-MIMO-OFDMA(non-adaptive)');
+xlabel('Eb/No [dB]');
+ylabel('BER');
+axis([0,30,10^(-5),10^(0)]);
+grid;
