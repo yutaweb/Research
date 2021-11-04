@@ -1,10 +1,21 @@
+% 全体的な課題：MIMO-OFDMAやそもそものOFDMAに関する知識をもっとつける
+% チャネルのフィードバックや移動通信環境下での評価をもっと行う
+% FSSで受信電力が等しくなっているかを検証する。
+% スループットの評価をする
 % 高次元変調に対応させる
-% 最適化の部分の見直し
+% SNR(高)：性能が良くなる
+% SNR(低)：性能が悪くなる
+% ※とりあえずは、16ビットで行う(NG)→なぜ？
+% ※4G：64ビット（64QAM）
+% ※5G：256ビット（256QAM）
+% 最適化の部分の見直し(OK)
 % 直交性補償の見直し
-% 誤り訂正符号を導入した際のシステムの評価
+% 誤り訂正符号を導入した際のシステムの評価(OK)
 % アンテナの本数を変えて評価する
-% 電力の見直し
-% 関数名の見直し
+% 電力の見直し(OK)
+% 関数名の見直し(OK)
+% OFDMAでは、完全に分離できている前提ではなく、SICなどで分離してユーザー間干渉を考慮した上で、評価する必要がある。
+% もしくは、ユーザ毎に異なる拡散符号を割り当てる手法を考える。
 
 %% simuration start
 clear all;
@@ -46,7 +57,7 @@ end
 %% Carriers used for a single wide OFDM channel
 
 StartCarr=1;
-FinCarr=ifftsize;% FinCarr=64
+FinCarr=ifftsize;% FinCarr =64
 carriers=[StartCarr:CarrSpacing:FinCarr];% [1,64]
 rep=100;%Number of loop times 
 
@@ -55,7 +66,7 @@ SNRMax=30;
 SNRInc=5;
 perfect=0;%perfect channel option(1: perfect,0:non perfect)
 proc_gain=16; %OFDMA(subcarrier num per 1 block)
-WordSizes=[2];%%BPSK:1,QPSK:2,16QAM:4
+WordSizes=2;%%BPSK:1,QPSK:2,16QAM:4
 NumSizes=length(WordSizes);% Numsizes=1
 Num_Tx=2;%Number of transmiter 
 Num_Rx=2;%Number of receiver
@@ -96,14 +107,15 @@ for l = 1:NumSizes % 1
         if strength_len==0
            Gen_data=MIMO_data(Num_sym,wordsize,NumCarr,Num_Tx);% MIMO_data(20,2,64,2)
         else
-           [Gen_data,Ori_data,int_pattern]=CMIMO_data(Num_sym,wordsize,NumCarr,g,Num_Tx);% convolutional code(R=1/2,K=7)
+           [Gen_data,Ori_data,int_pattern]=CMIMO_data(Num_sym,wordsize,NumCarr,g,Num_Tx);
+           % convolutional code(R=1/2,K=7)
            % Gen_data=[20,64,2,2] 0or1,Ori_data=[1,20*64*2-6] 0or1,int_pattern=[1,20*64*2*2] index
         end
         
         %% estimate channel
         [channel_ranking,user_index]=main_virtual(SNR,Doppler,com_delay,ifftsize,guardtype,guardtime,...
             MultiNo,Transrate,Delay,ww,Num_sym,NumCarr,Num_pilot,strength_len,carriers,proc_gain,...
-            WordSizes,NumSizes,k,Num_Tx,Num_Rx,Num_User,channel_rand,r);
+            wordsize,NumSizes,k,Num_Tx,Num_Rx,Num_User,channel_rand,r);
        
         %% transmitter
          Datatx=transmitter_non_FSS_MIMO_OFDMA(Gen_data,Num_sym,wordsize,NumCarr,guardtype,guardtime,...
@@ -177,9 +189,9 @@ for l = 1:NumSizes % 1
         
         if strength_len==0
            Summary=error_count(Gen_data,Datarx_hd,Num_Tx);
-           Result(k,1) = SNR;                  
+           Result(k,1) = SNR;
             %% Add up the number of errors
-           Result(k,l+1) = Result(k,l+1)+Summary(1);	
+           Result(k,l+1) = Result(k,l+1)+Summary(1);
         else
            Summary=error_count(Gen_data,Datarx_hd,Num_Tx); % Gen_data=[20,64,2,2],Datarx_hd=[20,64,2,2],Num_Tx=2
            Summary2=error_count2(Ori_data,Datarx,g,int_pattern,Num_Tx); % Ori_data=[1,20*64*2-6],Datarx=[20,64,2,2],g=[2,7],int_pattern=[1,20*64*2*2] index
@@ -209,7 +221,7 @@ disp(['Total Time: ' num2str(toc) 'sec']);
 %disp(['Process Speed : ' num2str(flops/toc) ' flops/sec']);
 semilogy(SNRMin+10*log10(coding_rate):SNRInc:SNRMax+10*log10(coding_rate),Result(:,2)','r>-',...
          SNRMin:SNRInc:SNRMax,Result1(:,2)','b<-');
-legend('FSS-MIMO(MMSE_MLD)','FSS-MIMO(FEC)');
+legend('FSS-MIMO-OFDMA','FSS-MIMO-OFDMA(FEC)');
 xlabel('Eb/No [dB]');
 ylabel('BER');
 axis([0,30,10^(-5),10^(0)]);

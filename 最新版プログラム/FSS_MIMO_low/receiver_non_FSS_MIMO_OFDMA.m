@@ -155,14 +155,13 @@ for i=1:Num_Rx
     for  k = 1:Num_sym % 1:20
        for cc=1:NumCarr % 1:64
           if wordsize==1
-             X=data_faded_final(k,cc);
-             Xi_hd=sign(real(X));% 0より大きければ1を返し、0より小さければ-1を返す。
-             Xi=real(X);% 実数部分の生データ
-             Datarx_hd(k,cc)= (Xi_hd+1)/2;% 0or1のデータ
-             Datarx(k,cc)= -Xi;
+             X(k,cc,i)=data_faded_final(k,cc,i);
+             Xi_hd(k,cc,i)=sign(real(X(k,cc,i)));% 0より大きければ1を返し、0より小さければ-1を返す。
+             Xi(k,cc,i)=real(X(k,cc,i));% 実数部分の生データ
+             Datarx_hd(k,cc,i)= (Xi_hd(k,cc,i)+1)/2;% 0or1のデータ
+             Datarx(k,cc,i)= -Xi(k,cc,i);
           elseif wordsize==2
-             % 送信アンテナでは、Dataは[NumSymb,NumCarr,wordsize,Num_Tx]となっている。（-1or1のデータ）
-             % 以下の復調データの格納がうまくいっていない。
+             % 送信アンテナでは、Dataは[NumSymb,NumCam ,r,wordsize,Num_Tx]となっている。（-1or1のデータ）
              X(k,cc,i)=data_faded_final(k,cc,i)*sqrt(2); % [20,64,1～2]
              Xi_hd(k,cc,i)=sign(real(X(k,cc,i))); % [20,64,1～2]
              Xq_hd(k,cc,i)=sign(imag(X(k,cc,i))); % [20,64,1～2]
@@ -172,31 +171,31 @@ for i=1:Num_Rx
              Datarx_hd(k,cc,2,i)=(Xq_hd(k,cc,i)+1)/2;
              Datarx(k,cc,1,i)=-Xi(k,cc,i);
              Datarx(k,cc,2,i)=-Xq(k,cc,i);
-          elseif wordsize==4
-             X=data_faded_final(k,cc)*sqrt(5);
-             Xi=real(X);
-             Xq=imag(X);
-             inst_dec1=Xi>0;
-             Datarx_hd(k,cc,1)=inst_dec1;
-             Datarx(k,cc,1)=-(Xi);
-             if inst_dec1==0
-                Xi=Xi+2; 
+          elseif wordsize==4 % 16QAM
+             X(k,cc,i)=data_faded_final(k,cc,i)*sqrt(5); % [20,64,1～2]
+             Xi_hd(k,cc,i)=real(X(k,cc,i)); % [20,64,1～2]
+             Xq_hd(k,cc,i)=imag(X(k,cc,i)); % [20,64,1～2]
+             inst_dec1(k,cc,i)=Xi_hd(k,cc,i)>0;
+             Datarx_hd(k,cc,1,i)=inst_dec1(k,cc,i);
+             Datarx(k,cc,1,i)=-(Xi_hd(k,cc,i));
+             if inst_dec1(k,cc,i)==0
+                Xi_hd(k,cc,i)=Xi_hd(k,cc,i)+2; 
              else
-                Xi=Xi-2; 
+                Xi_hd(k,cc,i)=Xi_hd(k,cc,i)-2; 
              end
-             Datarx_hd(k,cc,2)=sign(Xi)==1;
-             Datarx(k,cc,2)=-Xi;
+             Datarx_hd(k,cc,2,i)=sign(Xi_hd(k,cc,i))==1;
+             Datarx(k,cc,2)=-Xi_hd(k,cc,i);
 
-             inst_dec2=Xq>0;
-             Datarx_hd(k,cc,3)=inst_dec2;
-             Datarx(k,cc,3)=-(Xq);
-             if inst_dec2==0
-                Xq=Xq+2; 
+             inst_dec2(k,cc,i)=Xq_hd(k,cc,i)>0;
+             Datarx_hd(k,cc,3,i)=inst_dec2(k,cc,i);
+             Datarx(k,cc,3,i)=-(Xq_hd(k,cc,i));
+             if inst_dec2(k,cc,i)==0
+                Xq_hd(k,cc,i)=Xq_hd(k,cc,i)+2; 
              else
-                Xq=Xq-2; 
+                Xq_hd(k,cc,i)=Xq_hd(k,cc,i)-2; 
              end
-             Datarx_hd(k,cc,4)=sign(Xq)==1;
-             Datarx(k,cc,4)=-Xq;
+             Datarx_hd(k,cc,4,i)=sign(Xq_hd(k,cc,i))==1;
+             Datarx(k,cc,4,i)=-Xq_hd(k,cc,i);
           end
        end
     end

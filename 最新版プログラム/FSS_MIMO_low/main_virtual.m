@@ -68,7 +68,7 @@ for l = 1:NumSizes % 1
     %%  Rayleigh fading channel
     Multi = zeros(MultiNo,1);% [7,1]
     for w=1:MultiNo% 1 - 7
-        Multi(w)=10^(0-(((w-1)*ww)/10));% 10^0?ｽ?10^(-6/10)
+        Multi(w)=10^(0-(((w-1)*ww)/10));% 10^0 - 10^(-6/10)
     end
     Norm=sum(Multi); NormMulti=Multi./(Norm);% Normalization
     vertual_OutSignal1=zeros(1,(Num_sym+Num_pilot)*(NumCarr+guardtime),Num_Tx,Num_User); % [1,22*80,2,4]
@@ -134,7 +134,15 @@ for l = 1:NumSizes % 1
 %                user(u,fscb,i)=abs(mean(H_m_resp(i,i,(fscb-1)*proc_gain+1:fscb*proc_gain,u),3)); 
 %             end
 %         end
-%     end      
+%     end  
+    % 各サブキャリアブロック毎に分散を算出している
+%     for i=1:Num_Rx % 1 - 2
+%         for u=1:Num_User % 1 - 4
+%             for fscb=1:proc_gain_block % 1 - 4
+%                user(u,fscb,i)=abs(std(H_m_resp(i,i,(fscb-1)*proc_gain+1:fscb*proc_gain,u))); 
+%             end
+%         end
+%     end   
     
     % 各サブキャリアブロック毎に２乗平均を算出している（一番良い）（best-adaptiveに使用する）
     for i=1:Num_Rx % 1 - 2
