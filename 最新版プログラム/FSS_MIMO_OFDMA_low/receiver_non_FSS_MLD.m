@@ -100,7 +100,7 @@ received_signal=DataCarriers(1+Num_pilot:numsymb,:,:);
 if wordsize == 1
     x=[1,-1];     
 elseif wordsize == 2
-    x=[-1-1i,-1+1i,1-1i,1+1i];
+    x=[-1-1i,-1+1i,1-1i,1+1i]./sqrt(2);
 end
 
 for k=1:Num_sym % k=1～20
@@ -148,7 +148,7 @@ for i=1:Num_Rx
           elseif wordsize==2
              % 送信アンテナでは、Dataは[NumSymb,NumCarr,wordsize,Num_Tx]となっている。（-1or1のデータ）
              % 以下の復調データの格納がうまくいっていない。
-             X(k,cc,i)=received_signal_final(k,cc,i); % [20,64,1～2]
+             X(k,cc,i)=received_signal_final(k,cc,i)*sqrt(2); % [20,64,1～2]
              Xi_hd(k,cc,i)=sign(real(X(k,cc,i))); % [20,64,1～2]
              Xq_hd(k,cc,i)=sign(imag(X(k,cc,i))); % [20,64,1～2]
              Xi(k,cc,i)=real(X(k,cc,i)); % [20,64,1～2]
@@ -158,7 +158,7 @@ for i=1:Num_Rx
              Datarx(k,cc,1,i)=-Xi(k,cc,i);
              Datarx(k,cc,2,i)=-Xq(k,cc,i);
           elseif wordsize==4
-             X=received_signal_final(k,cc)*sqrt(5);
+             X=received_signal_final(k,cc)*sqrt(10)*sqrt(10);
              Xi=real(X);
              Xq=imag(X);
              inst_dec1=Xi>0;

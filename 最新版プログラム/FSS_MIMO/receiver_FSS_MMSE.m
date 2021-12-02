@@ -1,4 +1,4 @@
-function [Datarx,Datarx_hd]=receiver(TimeSignal,ifftsize,carriers,wordsize,guardtype,...
+function [Datarx,Datarx_hd]=receiver_FSS_MMSE(TimeSignal,ifftsize,carriers,wordsize,guardtype,...
                                      guardtime,Num_sym,Num_pilot,Doppler,proc_gain,Num_Tx,Num_Rx,noise)
 % TimeSignal=[1,22*64,2],ifftsize=64,carriers=[1,64],wordsize=2,guardtype=2,guardtime=4,Num_sym=20,Num_pilot=2,Doppler=4,proc_gain=64
 % Num_Tx=2,Num_Rx=2
@@ -85,10 +85,33 @@ for cc=1:NumCarr
 end
 
 %[2,2,64]⇒チャネル推定値が入っている。
-noise_std1=(std(noise(:,:,1)))^2;
-noise_std2=(std(noise(:,:,2)))^2;
-noise_std=[noise_std1 0;0 noise_std2];
-gause_noise=Num_Tx*noise_std.*eye(Num_Rx);
+% noise_std1=(std(noise(:,:,1)))^2;
+% noise_std2=(std(noise(:,:,2)))^2;
+% noise_std=[noise_std1 0;0 noise_std2];
+% gause_noise=Num_Tx*noise_std.*eye(Num_Rx);
+noise_reshape1=zeros(ifftsize+guardtime,numsymb,Num_Rx); % [80,22,2]
+noise_reshape=zeros(ifftsize,Num_sym,Num_Rx); % [64,20,2]
+if guardtype ~= 0 
+    for receive=1:Num_Rx
+        noise_reshape1(:,:,receive)=reshape(noise(:,:,receive),ifftsize+guardtime,numsymb);% [80,22,2] 
+        noise_reshape(:,:,receive)=noise_reshape1(guardtime+1:ifftsize+guardtime,1+Num_pilot:numsymb,receive);% [64,20,2] 竍? 繧ｬ繝ｼ繝峨う繝ｳ繧ｿ繝ｼ繝舌Ν縺ｮ髯､蜴ｻ
+    end
+else
+    for receive=1:Num_Rx
+        noise_reshape1(:,:,receive)=reshape(noise(:,:,receive),ifftsize,numsymb);
+        noise_reshape(:,:,receive)=noise_reshape1(:,1+Num_pilot:numsymb,receive);
+    end
+end
+
+noise_abs=zeros(Num_Rx,Num_Rx,Num_sym,ifftsize);
+gause_noise=zeros(Num_Rx,Num_Rx,Num_sym,ifftsize);
+ for k=1:Num_sym % 1 ～ 20
+        for cc=1:NumCarr % 1 ～ 64
+            noise_abs(:,:,k,cc)=[abs(noise_reshape(cc,k,1))^2 0;0 abs(noise_reshape(cc,k,2))^2];
+            gause_noise(:,:,k,cc)=Num_Tx*noise_abs(:,:,k,cc).*eye(Num_Rx);
+        end
+ end
+ 
 if Doppler==0
     data_faded1=DataCarriers(Num_pilot+1:Num_pilot+Num_sym,:); % [20,64,2]  
 else
@@ -98,7 +121,7 @@ else
    data_faded1=zeros(Num_sym,NumCarr,Num_Rx);
    for k=1:Num_sym % 1 ～ 20
         for cc=1:NumCarr % 1 ～ 64
-            data_faded1(k,cc,:)=inv(H_m_resp(:,:,cc)'*H_m_resp(:,:,cc)+gause_noise)*H_m_resp(:,:,cc)'*DataCarriers1(:,k,cc);
+            data_faded1(k,cc,:)=inv(H_m_resp(:,:,cc)'*H_m_resp(:,:,cc)+gause_noise(:,:,k,cc))*H_m_resp(:,:,cc)'*DataCarriers1(:,k,cc);
         end
    end
     
@@ -160,7 +183,7 @@ for i=1:Num_Rx
              Datarx(k,cc,1,i)=-Xi(k,cc,i);
              Datarx(k,cc,2,i)=-Xq(k,cc,i);
           elseif wordsize==4
-             X=data_faded(k,cc)*sqrt(5);
+             X=data_faded(k,cc)*sqrt(10);
              Xi=real(X);
              Xq=imag(X);
              inst_dec1=Xi>0;

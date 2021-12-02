@@ -69,7 +69,7 @@ end
 StartCarr=1;
 FinCarr=ifftsize;% FinCarr=64
 carriers=[StartCarr:CarrSpacing:FinCarr];% 0～64まで「1」間隔でcarriersにデータが入る [1,64]
-rep=3000;%Number of loop times ⇒　任意の回数ループする（シミュレーション回数）
+rep=100;%Number of loop times ⇒　任意の回数ループする（シミュレーション回数）
 
 SNRMin=0;
 SNRMax=30;
@@ -130,7 +130,7 @@ for l = 1:NumSizes % 1
            [Gen_data,Ori_data,int_pattern]=CMIMO_data1(Num_sym,wordsize,NumCarr,g,Num_Tx);% convolutional code(R=1/2,K=7)
            % Gen_data=[20,64,2,2]←0or1,Ori_data=[1,20*64-6,2]←0or1,int_pattern=[20*64*2,2]←index
         end
-        Datatx=transmitter_non_FSS(Gen_data,Num_sym,wordsize,NumCarr,guardtype,guardtime,...
+        Datatx=transmitter_FSS(Gen_data,Num_sym,wordsize,NumCarr,guardtype,guardtime,...
                            Num_pilot,proc_gain,Num_Tx); % transmitter([20,64,2,2],20,2,64,2,16,2,64,2) ⇒ [22,64,2]のデータ（パイロット信号 含）
    
         % receiverで復調する直前の信号はこの値に近くなければならない。:0.789etc 大きくても絶対値が2を超えない。
@@ -215,8 +215,7 @@ for l = 1:NumSizes % 1
         %**************
         % Rx device
         %**************
-        % おそらく、receiverが大きな問題を抱えている。でてくる値がでかすぎ問題。0.7+0.7iとか近辺の値である必要がある。
-        [Datarx,Datarx_hd]=receiver_non_FSS_MLD(TimeSignal,ifftsize,carriers,wordsize,guardtype,...
+        [Datarx,Datarx_hd]=receiver_FSS_MMSE(TimeSignal,ifftsize,carriers,wordsize,guardtype,...
                                     guardtime,Num_sym,Num_pilot,Doppler,proc_gain,Num_Tx,Num_Rx,noise);% [[1,22*68,2],64,[1,64],1,2,4,20,2,4,64,2,2]
         % Datarx_hd=復調したデータ [20,64,2,2]
         % Datarx=実数部の生データを符号反転したもの [20,64,2,2]

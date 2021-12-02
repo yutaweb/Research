@@ -103,7 +103,7 @@ Datatx2=sum(Datatx2,3)./sqrt(proc_gain);% [20,64,1,2]
 % [20,49～64,1,2] ⇒ ユーザ4に割り当てる
 % 8ユーザの場合は8分割、16ユーザの場合は16分割
 % [20,64,64,2]を3次元方向に和を取る。⇒ [20,64,2] これを正規化するために、sqrt(64)で割る。
-Datatx(Num_pilot+1:Numsymb+Num_pilot,:,:)=permute(Datatx2,[1 2 4 3]);% [24,64,2]のデータ
+Datatx(Num_pilot+1:Numsymb+Num_pilot,:,:)=permute(Datatx2,[1 2 4 3])/Num_Tx;% [24,64,2]のデータ
 % Datatx(22,64,2)のデータが返る。
 % 周波数拡散したデータが入っているので、訳が分からなくなっている。
 

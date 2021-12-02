@@ -54,7 +54,7 @@ end
 StartCarr=1;
 FinCarr=ifftsize;% FinCarr =64
 carriers=[StartCarr:CarrSpacing:FinCarr];% [1,64]
-rep=1000;%Number of loop times 
+rep=100;%Number of loop times 
 
 SNRMin=0;
 SNRMax=30;
@@ -113,7 +113,7 @@ for l = 1:NumSizes % 1
             wordsize,NumSizes,k,Num_Tx,Num_Rx,Num_User,channel_rand,r);
        
         %% transmitter
-         Datatx=transmitter_FSS_MIMO_OFDMA(Gen_data,Num_sym,wordsize,NumCarr,guardtype,guardtime,...
+         Datatx=transmitter_non_FSS_MIMO_OFDMA(Gen_data,Num_sym,wordsize,NumCarr,guardtype,guardtime,...
                           Num_pilot,proc_gain,Num_Tx); % transmitter([20,64,2,2],20,2,64,2,16,2,64,4) [22,64,2]
         % [22,64,2]
         % [22,1:16,2]
@@ -179,8 +179,10 @@ for l = 1:NumSizes % 1
         clear BaseSignal;% save memory
   
          %% Rx device 
-        [Datarx,Datarx_hd]=receiver_FSS_MIMO_OFDMA(TimeSignal,ifftsize,carriers,wordsize,guardtype,...
-                                    guardtime,Num_sym,Num_pilot,Doppler,proc_gain,Num_Tx,Num_Rx,Num_User,noise,channel_ranking,user_index);% [[1,22*80,2,4],64,[1,64],1,2,4,20,2,4,64,2,2,[1,22*80,2,4]]
+%         [Datarx,Datarx_hd]=receiver_non_FSS_MLD(TimeSignal,ifftsize,carriers,wordsize,guardtype,...
+%                                     guardtime,Num_sym,Num_pilot,Doppler,proc_gain,Num_Tx,Num_Rx,Num_User,noise,channel_ranking,user_index);% [[1,22*80,2,4],64,[1,64],1,2,4,20,2,4,64,2,2,[1,22*80,2,4]]
+        [Datarx,Datarx_hd]=receiver_non_FSS_MLD(TimeSignal,ifftsize,carriers,wordsize,guardtype,...
+                                     guardtime,Num_sym,Num_pilot,Doppler,proc_gain,Num_Tx,Num_Rx,noise);% [[1,22*80,2,4],64,[1,64],1,2,4,20,2,4,64,2,2,[1,22*80,2,4]]
         
         if strength_len==0
            Summary=error_count(Gen_data,Datarx_hd,Num_Tx);
